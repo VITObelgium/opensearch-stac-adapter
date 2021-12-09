@@ -303,7 +303,11 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
         return ItemCollection(
             type="FeatureCollection",
             features=items,
-            links=PagingLinks(request, next_token=next_token, body=await request.json()).create_links()
+            links=PagingLinks(
+                request,
+                next_token=next_token,
+                body=await request.json() if request.method == "POST" else None
+            ).create_links()
         )
 
     async def get_search(
