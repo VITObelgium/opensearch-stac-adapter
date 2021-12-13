@@ -20,7 +20,8 @@ setup(
         "stac-fastapi.api",
         "stac-fastapi.types",
         "stac-fastapi.extensions",
-        "uvicorn"
+        "uvicorn",
+        "jsonpath-ng"
     ],
     tests_require=[
         "pytest",

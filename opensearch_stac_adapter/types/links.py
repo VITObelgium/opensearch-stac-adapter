@@ -2,10 +2,7 @@ import attr
 from typing import Optional, List, Dict, Any
 from starlette.requests import Request
 
-from stac_pydantic.links import Relations, PaginationLink
-from stac_pydantic.shared import MimeTypes
-
-from opensearch_stac_adapter.types.search import AdaptedSearch
+from stac_pydantic.links import Relations
 
 
 @attr.s
