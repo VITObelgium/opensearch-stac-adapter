@@ -12,6 +12,7 @@ setup(
     author="Stijn Caerts",
     author_email="stijn.caerts@vito.be",
     description="OpenSearch to STAC adapter",
+    url="https://github.com/VITObelgium/opensearch-stac-adapter",
     packages=find_packages(),
     install_requires=[
         "attrs",
@@ -20,5 +21,9 @@ setup(
         "stac-fastapi.types",
         "stac-fastapi.extensions",
         "uvicorn"
-    ]
+    ],
+    tests_require=[
+        "pytest",
+        "pytest-asyncio"
+    ],
 )
