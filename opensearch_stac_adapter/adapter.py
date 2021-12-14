@@ -262,18 +262,22 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
         request: Request = kwargs["request"]
         base_url = str(request.base_url)
 
-        next_token = None
+        next_token: Optional[str] = None
         items: List[Item] = []
-        collection = search_request.collections[0]
 
         if search_request.ids is not None:
-            # TODO: adhere to limit parameter?
-            products = [
-                p
-                for item_id in set(search_request.ids)
-                for p in self.catalogue.get_products(collection=collection, uid=item_id)
-            ]
+            # only return the requested ids
+            for item_id in set(search_request.ids):
+                for collection_id in search_request.collections:
+                    try:
+                        results = list(self.catalogue.get_products(collection=collection_id, uid=item_id))
+                        if len(results) == 1:
+                            items.append(await self._item_adapter(results[0], collection_id, base_url=base_url))
+                            break
+                    except:
+                        pass
         else:
+            # perform full query
             query_params = dict()
             if search_request.datetime is not None:
                 query_params['start'] = search_request.start_date
@@ -284,21 +288,37 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
                 query_params['geometry'] = shape(search_request.intersects).wkt
             if search_request.token is not None:
                 try:
-                    query_params['startIndex'] = int(search_request.token)
+                    collection, start_index, collection_hit_count = search_request.token.split(",")
+                    start_index = int(start_index)
+                    collection_hit_count = int(collection_hit_count)
+
+                    query_params['startIndex'] = start_index
                 except ValueError:
                     raise InvalidQueryParameter("Invalid value for token parameter.")
+            else:
+                collection = search_request.collections[0]
+                start_index = 1
+                collection_hit_count = self.catalogue.get_product_count(collection=collection, **query_params)
 
-            start_index = query_params.get('startIndex', 1)
-            if start_index + search_request.limit - 1 < self.catalogue.get_product_count(collection=collection, **query_params):
-                next_token = start_index + search_request.limit
+            if start_index + search_request.limit - 1 < collection_hit_count:
+                next_index = start_index + search_request.limit
+                next_token = f"{collection},{next_index},{collection_hit_count}"
+            else:
+                # link to next collection (if available)
+                next_collection_idx = search_request.collections.index(collection) + 1
+                next_collection = search_request.collections[next_collection_idx] if len(search_request.collections) > next_collection_idx else None
+                if next_collection is not None:
+                    next_collection_hit_count = self.catalogue.get_product_count(collection=next_collection, **query_params)
+                    next_token = f"{next_collection},1,{next_collection_hit_count}"
 
             products = self.catalogue.get_products(
                 collection=collection,
                 limit=search_request.limit,
                 **query_params
             )
-        for p in products:
-            items.append(await self._item_adapter(p, collection, base_url=base_url))
+
+            for p in products:
+                items.append(await self._item_adapter(p, collection, base_url=base_url))
 
         return ItemCollection(
             type="FeatureCollection",
