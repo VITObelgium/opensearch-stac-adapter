@@ -6,4 +6,7 @@ pythonPipeline {
   wheel_repo            = 'python-packages-public'
   create_tag_job        = true
   build_container_image = true
+  dev_hosts             = 'docker-services01.vgt.vito.be'
+  docker_deploy         = true
+  docker_run_options    = ['-p 8001:80']
 }
