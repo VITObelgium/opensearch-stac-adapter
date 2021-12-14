@@ -7,3 +7,4 @@ pytest/
 **/__pycache__/
 venv/
 docs/_build
+pip.conf
