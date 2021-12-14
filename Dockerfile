@@ -2,6 +2,8 @@ FROM python:3.8-alpine
 
 ARG PACKAGE_NAME
 
+COPY pip.conf /etc/pip.conf
+
 COPY dist/${PACKAGE_NAME} /src/${PACKAGE_NAME}
 
 RUN python3 -m pip install /src/${PACKAGE_NAME}
