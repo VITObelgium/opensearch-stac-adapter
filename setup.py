@@ -17,10 +17,10 @@ setup(
     install_requires=[
         "attrs",
         "terracatalogueclient==0.1.7",
-        "stac-fastapi.api",
-        "stac-fastapi.types",
-        "stac-fastapi.extensions",
-        "uvicorn",
+        "stac-fastapi.api==2.2.0",
+        "stac-fastapi.types==2.2.0",
+        "stac-fastapi.extensions==2.2.0",
+        "uvicorn[standard]",
         "jsonpath-ng"
     ],
     tests_require=[
