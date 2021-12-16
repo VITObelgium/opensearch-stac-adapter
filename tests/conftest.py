@@ -4,7 +4,7 @@ from stac_fastapi.api.app import ApiSettings
 from stac_fastapi.api.app import StacApi
 
 from opensearch_stac_adapter.adapter import OpenSearchAdapterClient
-from opensearch_stac_adapter.types.search import AdaptedSearch
+from opensearch_stac_adapter.models.search import AdaptedSearch
 
 settings = ApiSettings()
 

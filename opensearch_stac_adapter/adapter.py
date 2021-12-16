@@ -19,8 +19,8 @@ from terracatalogueclient import Catalogue
 import terracatalogueclient.client
 
 from opensearch_stac_adapter import __title__, __version__
-from opensearch_stac_adapter.types.links import PagingLinks
-from opensearch_stac_adapter.types.search import AdaptedSearch
+from opensearch_stac_adapter.models.links import PagingLinks
+from opensearch_stac_adapter.models.search import AdaptedSearch
 
 
 path_beginning_datetime: jsonpath.JSONPath = parse(
@@ -148,6 +148,18 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
                 key = urlparse(pf.href).path
             assets[key] = asset
 
+        properties = {
+            "datetime": p.properties['date'],
+            "title": p.title,
+            "created": p.properties['published'],
+            "updated": p.properties['updated'],
+            "start_datetime": path_beginning_datetime.find(p.properties)[0].value,
+            "end_datetime": path_ending_datetime.find(p.properties)[0].value
+        }
+
+        if len(platforms := path_platform_shortname.find(p.properties)):
+            properties['platform'] = platforms[0].value
+
         return Item(
             type="Feature",
             stac_version="1.0.0",
@@ -155,15 +167,7 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
             id=p.id,
             geometry=p.geojson['geometry'],
             bbox=p.bbox,
-            properties={
-                "datetime": p.properties['date'],
-                "title": p.title,
-                "created": p.properties['published'],
-                "updated": p.properties['updated'],
-                "start_datetime": path_beginning_datetime.find(p.properties)[0].value,
-                "end_datetime": path_ending_datetime.find(p.properties)[0].value,
-                # "platform": path_platform_shortname.find(p.properties)[0].value
-            },
+            properties=properties,
             links=ItemLinks(collection_id=collection, base_url=base_url, item_id=p.id).create_links(),
             assets=assets,
             collection=p.properties['parentIdentifier']
