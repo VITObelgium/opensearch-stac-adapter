@@ -43,11 +43,20 @@ terracatalogueclient.client._DEFAULT_REQUEST_HEADERS = {
 
 @attr.s
 class OpenSearchAdapterClient(AsyncBaseCoreClient):
+    """STAC API client that implements a OpenSeach endpoint as back-end."""
+
     catalogue: Catalogue = attr.ib(default=Catalogue())  # OpenSearch catalogue
     search_request_model: Type[AdaptedSearch] = attr.ib(init=False, default=AdaptedSearch)
 
     @staticmethod
     async def _collection_adapter(c: terracatalogueclient.Collection, base_url: str) -> Collection:
+        """
+        Adapts an OpenSearch collection to the STAC collection format.
+
+        :param c: OpenSearch collection
+        :param base_url: base URL of the request
+        :return: STAC collection
+        """
         date_split = c.properties['date'].split("/")
         date_start = date_split[0]
         date_end = date_split[1] if len(date_split) == 2 and len(date_split[1]) > 0 else None
@@ -97,6 +106,14 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
 
     @staticmethod
     async def _item_adapter(p: terracatalogueclient.Product, collection: str, base_url: str) -> Item:
+        """
+        Adapts an OpenSearch product to the STAC item format.
+
+        :param p: OpenSearch product
+        :param collection: collection identifier
+        :param base_url: base URL of the request
+        :return: STAC item
+        """
         assets = OrderedDict()
         # check https://github.com/radiantearth/stac-spec/blob/master/best-practices.md#list-of-asset-roles
         # for a list of asset roles
@@ -154,6 +171,13 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
 
     @staticmethod
     async def _item_asset_adapter(pf: terracatalogueclient.ProductFile, roles: Optional[List[str]]) -> dict:
+        """
+        Adapts an OpenSearch product file to the STAC asset format.
+
+        :param pf: OpenSearch product file
+        :param roles: list of roles of the asset
+        :return: STAC asset
+        """
         asset = dict()
         asset['href'] = pf.href
         asset['type'] = pf.type
@@ -247,7 +271,7 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
 
         :param item_id: item ID
         :param collection_id: collection ID
-        :return:
+        :return: item
         """
         request: Request = kwargs["request"]
         base_url = str(request.base_url)
@@ -259,6 +283,13 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
             raise NotFoundError(f"Item {item_id} does not exist in collection {collection_id}.")
 
     async def _search_base(self, search_request: AdaptedSearch, **kwargs) -> ItemCollection:
+        """
+        Implements cross-catalog search.
+        Multiple collections are supported by iterating over the collections. Supports paging.
+
+        :param search_request: search request parameters
+        :return: item collection containing the search results
+        """
         request: Request = kwargs["request"]
         base_url = str(request.base_url)
 
@@ -348,17 +379,16 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
 
         Called with `GET /search`
 
-        :param collections:
-        :param ids:
-        :param bbox:
-        :param datetime:
-        :param limit:
+        :param collections: list of collections to query
+        :param ids: list of identifiers to retrieve
+        :param bbox: bounding box
+        :param datetime: start/end time
+        :param limit: maximum number of results per page
         :param query:
-        :param token:
+        :param token: pagination token
         :param fields:
         :param sortby:
-        :param kwargs:
-        :return:
+        :return: item collection containing the query results
         """
         # parse request parameters
         base_args = {
@@ -381,8 +411,7 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
 
         Called with `POST /search`
 
-        :param search_request:
-        :param kwargs:
-        :return:
+        :param search_request: search request parameters
+        :return: item collection containing the query results
         """
         return await self._search_base(search_request, **kwargs)
