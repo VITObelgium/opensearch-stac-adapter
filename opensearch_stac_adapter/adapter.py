@@ -3,6 +3,8 @@ from datetime import datetime
 from urllib.parse import urljoin, urlparse
 from typing import Optional, List, Union, Dict, Type
 from collections import OrderedDict
+
+from pydantic import ValidationError
 from starlette.requests import Request
 from jsonpath_ng import jsonpath, parse
 import json
@@ -12,14 +14,16 @@ from stac_pydantic.links import Relations
 from stac_pydantic.shared import MimeTypes, Asset, AssetRoles, Provider
 from stac_fastapi.types.core import AsyncBaseCoreClient, NumType
 from stac_fastapi.types.stac import Collection, Collections, Item, ItemCollection
-from stac_fastapi.types.links import CollectionLinks, ItemLinks
+from stac_fastapi.types.links import CollectionLinks
 from stac_fastapi.types.errors import NotFoundError, InvalidQueryParameter
+from fastapi.exceptions import HTTPException
 
 from terracatalogueclient import Catalogue
 import terracatalogueclient.client
+import terracatalogueclient.exceptions
 
 from opensearch_stac_adapter import __title__, __version__
-from opensearch_stac_adapter.models.links import PagingLinks
+from opensearch_stac_adapter.models.links import PagingLinks, ItemLinks
 from opensearch_stac_adapter.models.search import AdaptedSearch
 
 
@@ -238,7 +242,10 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
         request: Request = kwargs["request"]
         base_url = str(request.base_url)
 
-        collections = list(self.catalogue.get_collections(uid=id))
+        try:
+            collections = list(self.catalogue.get_collections(uid=id))
+        except terracatalogueclient.exceptions.SearchException as e:
+            collections = []
         if len(collections) != 1:
             raise NotFoundError(f"Collection {id} does not exist.")
 
@@ -257,6 +264,9 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
         """
         request: Request = kwargs["request"]
         base_url = str(request.base_url)
+
+        # check if collection exists, if not, a NotFoundError will be raised
+        await self.get_collection(id, **kwargs)
 
         search = self.search_request_model(collections=[id], limit=limit, token=token)
         item_collection = await self._search_base(search, **kwargs)
@@ -280,10 +290,14 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
         request: Request = kwargs["request"]
         base_url = str(request.base_url)
 
+        # check if collection exists, if not, a NotFoundError will be raised
+        await self.get_collection(collection_id, **kwargs)
+
         try:
             [product] = list(self.catalogue.get_products(collection=collection_id, uid=item_id))
+            # raises ValueError when cannot unpack 1 value from list
             return await self._item_adapter(product, collection_id, base_url)
-        except:
+        except (terracatalogueclient.exceptions.SearchException, ValueError):
             raise NotFoundError(f"Item {item_id} does not exist in collection {collection_id}.")
 
     async def _search_base(self, search_request: AdaptedSearch, **kwargs) -> ItemCollection:
@@ -309,7 +323,7 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
                         if len(results) == 1:
                             items.append(await self._item_adapter(results[0], collection_id, base_url=base_url))
                             break
-                    except:
+                    except terracatalogueclient.exceptions.SearchException:
                         pass
         else:
             # perform full query
@@ -405,7 +419,10 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
         }
         if datetime:
             base_args["datetime"] = datetime
-        search_request = self.search_request_model(**base_args)
+        try:
+            search_request = self.search_request_model(**base_args)
+        except ValidationError as e:
+            raise HTTPException(status_code=400, detail="Invalid parameters provided.")
         results = await self._search_base(search_request, **kwargs)
         return results
 

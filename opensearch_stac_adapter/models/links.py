@@ -3,10 +3,11 @@ from typing import Optional, List, Dict, Any
 from starlette.requests import Request
 
 from stac_pydantic.links import Relations
+import stac_fastapi.types.links
 
 
 @attr.s
-class PagingLinks():
+class PagingLinks:
     """Links for paging."""
     request: Request = attr.ib()
     next_token: Optional[int] = attr.ib(kw_only=True, default=None)
@@ -41,4 +42,17 @@ class PagingLinks():
         next_link = self.next()
         if next_link is not None:
             links.append(next_link)
+        return links
+
+
+class ItemLinks(stac_fastapi.types.links.ItemLinks):
+
+    def create_links(self) -> List[Dict[str, Any]]:
+        # do not include the 'tiles' link
+        links = [
+            self.self(),
+            self.parent(),
+            self.collection(),
+            self.root(),
+        ]
         return links
