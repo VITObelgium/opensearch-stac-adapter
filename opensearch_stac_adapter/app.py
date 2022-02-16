@@ -8,10 +8,10 @@ settings = ApiSettings()
 
 api = StacApi(
     settings=settings,
-    client=OpenSearchAdapterClient(),
+    client=OpenSearchAdapterClient(landing_page_id="terrascope"),
     extensions=[],
-    title="STAC API for Remote Sensing",
-    description="STAC API for Remote Sensing",
+    title="Terrascope - STAC API",
+    description="VITO Remote Sensing EO Data Catalogue - Terrascope platform.",
     search_request_model=AdaptedSearch,
 )
 
