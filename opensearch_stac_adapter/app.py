@@ -1,5 +1,6 @@
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.api.app import ApiSettings
+from fastapi import FastAPI, Request
 from opensearch_stac_adapter.adapter import OpenSearchAdapterClient
 from opensearch_stac_adapter.models.search import AdaptedSearch
 
@@ -14,7 +15,16 @@ api = StacApi(
     search_request_model=AdaptedSearch,
 )
 
-app = api.app
+app: FastAPI = api.app
+
+
+@app.middleware("http")
+async def handle_x_forwarded_prefix_header(request: Request, call_next):
+    prefix = request.headers.get("X-Forwarded-Prefix")
+    if prefix:
+        request.scope['root_path'] = prefix
+
+    return await call_next(request)
 
 
 def run():
