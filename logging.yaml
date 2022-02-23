@@ -11,16 +11,18 @@ handlers:
   default:
     formatter: default
     class: logging.handlers.RotatingFileHandler
-    filename: application.log
+    filename: logs/application.log
   access:
     formatter: access
     class: logging.handlers.RotatingFileHandler
-    filename: access.log
+    filename: logs/access.log
 loggers:
   uvicorn.error:
+    level: INFO
     handlers:
       - default
   uvicorn.access:
+    level: INFO
     handlers:
       - access
     propagate: no

@@ -6,6 +6,7 @@ COPY pip.conf /etc/pip.conf
 
 COPY logging.yaml /src/logging.yaml
 COPY dist/${PACKAGE_NAME} /src/${PACKAGE_NAME}
+RUN mkdir /logs
 
 RUN python3 -m pip install /src/${PACKAGE_NAME}
 
