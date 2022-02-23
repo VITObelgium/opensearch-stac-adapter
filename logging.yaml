@@ -12,10 +12,14 @@ handlers:
     formatter: default
     class: logging.handlers.RotatingFileHandler
     filename: logs/application.log
+    maxBytes: 10000000
+    backupCount: 5
   access:
     formatter: access
     class: logging.handlers.RotatingFileHandler
     filename: logs/access.log
+    maxBytes: 10000000
+    backupCount: 5
 loggers:
   uvicorn.error:
     level: INFO
