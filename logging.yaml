@@ -1,0 +1,26 @@
+version: 1
+disable_existing_loggers: False
+formatters:
+  default:
+    "()": uvicorn.logging.DefaultFormatter
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  access:
+    "()": uvicorn.logging.AccessFormatter
+    format: '%(asctime)s - %(message)s'
+handlers:
+  default:
+    formatter: default
+    class: logging.handlers.RotatingFileHandler
+    filename: application.log
+  access:
+    formatter: access
+    class: logging.handlers.RotatingFileHandler
+    filename: access.log
+loggers:
+  uvicorn.error:
+    handlers:
+      - default
+  uvicorn.access:
+    handlers:
+      - access
+    propagate: no

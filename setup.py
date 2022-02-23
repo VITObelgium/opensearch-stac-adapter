@@ -16,7 +16,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "attrs",
-        "terracatalogueclient==0.1.7",
+        "terracatalogueclient==0.1.9",
         "stac-fastapi.api==2.2.0",
         "stac-fastapi.types==2.2.0",
         "stac-fastapi.extensions==2.2.0",
