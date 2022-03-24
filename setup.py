@@ -21,6 +21,7 @@ setup(
         "stac-fastapi.types==2.2.0",
         "stac-fastapi.extensions==2.2.0",
         "uvicorn[standard]",
+        "asgi-logger",
         "jsonpath-ng"
     ],
     tests_require=[

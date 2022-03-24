@@ -4,9 +4,6 @@ formatters:
   default:
     "()": uvicorn.logging.DefaultFormatter
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-  access:
-    "()": uvicorn.logging.AccessFormatter
-    format: '%(asctime)s - %(message)s'
 handlers:
   default:
     formatter: default
@@ -15,7 +12,6 @@ handlers:
     maxBytes: 10000000
     backupCount: 5
   access:
-    formatter: access
     class: logging.handlers.RotatingFileHandler
     filename: logs/access.log
     maxBytes: 10000000
@@ -26,7 +22,8 @@ loggers:
     handlers:
       - default
   uvicorn.access:
+    handlers:  # no handlers for uvicorn access logs
+  access:
     level: INFO
     handlers:
       - access
-    propagate: no

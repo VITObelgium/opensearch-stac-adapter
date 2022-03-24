@@ -1,8 +1,10 @@
 from stac_fastapi.api.app import StacApi
 from stac_fastapi.api.app import ApiSettings
 from fastapi import FastAPI, Request
+from asgi_logger import AccessLoggerMiddleware
 from opensearch_stac_adapter.adapter import OpenSearchAdapterClient
 from opensearch_stac_adapter.models.search import AdaptedSearch
+import logging
 
 settings = ApiSettings()
 
@@ -13,9 +15,15 @@ api = StacApi(
     title="Terrascope - STAC API",
     description="VITO Remote Sensing EO Data Catalogue - Terrascope platform.",
     search_request_model=AdaptedSearch,
+    middlewares=[]
 )
 
 app: FastAPI = api.app
+app.add_middleware(
+    AccessLoggerMiddleware,
+    format='%(t)s %(client_addr)s "%(request_line)s" %(s)s %(B)s %(M)s',
+    logger=logging.getLogger("access")
+)
 
 
 @app.middleware("http")
