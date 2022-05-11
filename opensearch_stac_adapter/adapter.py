@@ -314,6 +314,9 @@ class OpenSearchAdapterClient(AsyncBaseCoreClient):
         next_token: Optional[str] = None
         items: List[Item] = []
 
+        if search_request.collections is None:
+            search_request.collections = [collection.id for collection in self.catalogue.get_collections()]
+
         if search_request.ids is not None:
             # only return the requested ids
             for item_id in set(search_request.ids):

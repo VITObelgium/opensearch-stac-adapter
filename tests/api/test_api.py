@@ -118,7 +118,7 @@ def test_get_search_no_collection(test_client: TestClient):
             "datetime": "2020-02-01T00:00:00Z/2020-02-20T23:59:59Z"
         }
     )
-    assert response.status_code == 400
+    assert response.status_code == 200
 
 
 def test_post_search(test_client: TestClient):
