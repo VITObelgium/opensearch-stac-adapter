@@ -63,7 +63,7 @@ def test_items_invalid(test_client: TestClient):
 
 def test_item(test_client: TestClient):
     response = test_client.get("/collections/urn:eop:VITO:TERRASCOPE_S2_CHL_V1/items/"
-                               "urn:eop:VITO:TERRASCOPE_S2_CHL_V1:S2A_20220110T105421_31UES_CHL_20M_V100")
+                               "urn:eop:VITO:TERRASCOPE_S2_CHL_V1:S2A_20220110T105421_31UES_CHL_20M_V120")
     assert response.status_code == 200
     data = response.json()
     # don't expect a 'tiles' link
